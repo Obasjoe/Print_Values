@@ -1,0 +1,111 @@
+  #Homework 3, Joseph Obasuyi
+
+#This program translates the given c code into mips code.
+
+
+.data
+array: .word 5, 2, 15, 3, 7, 15, 8, 9, 5, 2, 15, 3, 7
+size: .word 13
+msg_01: .asciiz "The largest number is "
+msg_02: .asciiz "The largest number is included "
+msg_03: .asciiz " times \n"
+msg_04: .asciiz "bigger..\n"
+msg_05: .asciiz "same..\n"
+msg_06: .asciiz "smaller..\n"
+newline: .asciiz "\n"
+.text
+.globl main
+main:
+
+la $a0, array
+lw $a1, size
+jal   print_array
+la $a0, array
+lw $a1, size
+jal compare_array
+
+# end  of main.
+  li $v0, 10
+  syscall
+
+print_array:       #the value of the array is printed with this.
+move $t0,$a0
+move $t1, $a1
+print:
+ble $t1, $zero, end #condition for the loop
+lw $a0, 0($t0)
+li $v0,1
+syscall
+addi $t0, $t0, 4 #increase index of the array
+addi $t1, $t1, -1 #decrease index of the array
+j print
+end:
+la $a0, newline         #printing newline
+li $v0, 4
+syscall
+jr $ra
+
+compare_array:
+
+move $t0, $a0     #move address of array to t0
+move $t1, $a1     #t1 contains the size of the array.
+move $t3, $zero   # t3 counts iterations and terminates when equal to size.
+move $t4, $zero    #register for the number that is largest
+move $t5, $zero    # register to count the number that is largest
+compare_loop: bge $t3, $t1, compare_loop_end
+lw $a0, 0($t0)     # access value in the array
+bgt $a0, $t4, bigger  #if the number is bigger jump to bigger number
+beq $a0, $t4, same   #if the number is same jump to same number
+
+# if the number is smaller than the current largest number
+j smaller
+
+bigger:   #this replaces the current largest number
+lw $t4, 0($t0)
+li $t5, 1
+la $a0, msg_04
+li $v0, 4
+syscall
+j continue
+
+same:      #this counts how many times largest number appears and prints same
+addi $t5, $t5, 1
+la $a0, msg_05
+li $v0, 4
+syscall
+j continue
+
+smaller:  #prints smaller
+la $a0, msg_06
+li $v0, 4
+syscall
+
+continue:
+addi $t3, $t3, 1
+addi $t0, $t0, 4
+
+j compare_loop
+compare_loop_end:
+la $a0, msg_01  #prints that value that the largest number is.
+li $v0, 4
+syscall
+move $a0, $t4
+li $v0, 1
+syscall
+
+la $a0, newline  #printing in newline.
+li $v0, 4
+syscall
+
+#print how many times the largest number appears.
+la $a0, msg_02
+li $v0, 4
+syscall
+move $a0, $t5
+li $v0, 1
+syscall
+la $a0, msg_03
+li $v0, 4
+syscall
+
+jr $ra
